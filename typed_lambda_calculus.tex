@@ -1,24 +1,513 @@
 \documentclass{llncs}
 \usepackage[utf8]{inputenc}
+\usepackage[colorlinks=true, citecolor=blue, linkcolor=black]{hyperref}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\let\proof\relax
+\let\endproof\relax
+\usepackage{amsthm}
+\usepackage{mdframed}
+\usepackage[normalem]{ulem}
 \usepackage{semantic/semantic}
+\newcommand{\lambdasystem}[0]{{\lambda}{\rightarrow}}
+\newcommand{\myemph}[1]{\textbf{\emph{#1}}}
+
+\theoremstyle{definition}
+\newtheorem{mydef}{Definition}
+\newtheorem*{mydef*}{Definition}
+\numberwithin{mydef}{subsection}
+\theoremstyle{plain}
+\newtheorem{myth}[mydef]{Theorem}
+\newtheorem{mylm}[mydef]{Lemma}
+\newtheorem*{mylm*}{Lemma}
+\newtheorem{notation}[mydef]{Notation}
+\newtheorem{myprop}[mydef]{Proposition}
+\theoremstyle{remark}
+\newtheorem{myex}[mydef]{Example}
 
 \pagestyle{plain}
 
 \begin{document}
 	\title{Typed $\lambda$-calculus}
 
-	\author{João Rebelo Pires}
+	\author{João Rebelo Pires, \email{up21200384@fc.up.pt}}
 
 	\institute{DCC - FCUP}
 
 	\maketitle
-
-	\begin{abstract}
+		
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
+	% 1. Introduction
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\section{Introduction}\label{sec:intro}
 	
-		This work talks about $\lambda$-calculus.
-		% TODO: Edit abstract to something else better.
+	In this work, we present the $\lambdasystem$ of typed $\lambda$-calculus, presenting an overview of both Curry and Church such systems.
+	We assume the reader is familiarised with induction, and has some basic knowledge on reduction systems and type-free $\lambda$-calculus. As for notation for $\lambda$-calculus, we will use the same as in \cite{henkbarendregt1991}.
+	
+	In \textbf{section \ref{sec:vs}}, we give definitions and present results on both styles.
+	
+	In \textbf{section \ref{sec:relating}}, we present a relation between both styles, as a concluding remark.
 
-		\keywords{Typing, Curry, Church, $\lambda$-calculus}
-
-	\end{abstract}
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
+	% 2. Curry vs. Church
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
+	\section{Curry versus Church}\label{sec:vs}
+	
+	In this section, we simply introduce the system $\lambdasystem$ of simply typed $\lambda$-calculus, with an overview of the two styles of typing in discussion in this work.
+	Both Church and Curry styles have differences, as we will see, by introducing $\lambdasystem$ in both ways.
+	There are several other systems of typed $\lambda$-calculus that exist in both Church and Curry styles.
+	However, this is not so for all systems.
+	For the systems that exist in both styles, there is a clear relation between the two versions, as will be explained for $\lambdasystem$.
+	
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
+	% 2.1 Curry system
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
+	\subsection{The system $\lambdasystem$-Curry}
+	
+	Originally, the implicit typing paradigm was introduced for the theory of combinators by Curry in 1934. 
+	In 1958, Curry and Feys modified it in a natural way to the $\lambda$-calculus assignment elements of a given set $\mathbb{T}$ of types to type free $\lambda$-terms.
+	For this reason, these calculi \textit{à la Curry} are sometimes called \textbf{systems of type assignment}.
+	Given a type $\sigma \in \mathbb{T}$, if $\sigma$ is assigned to the term $M \in \Lambda$\footnote{Remember that $\Lambda$ is the set of $\lambda$-terms.} one writes $\vdash M : \sigma$, often with a subscript under $\vdash$ to denote the particular system.
+	A set of assumptions $\Gamma$ is needed to derive a type assignment, and we say that '$\Gamma$ yields $M$ in $\sigma$' when we do so, which is denoted by $\Gamma \vdash M : \sigma$.
+	One particular Curry type assignment depends on two parameters, the previously defined set $\mathbb{T}$ and the rules of type assignment.
+	As an example, we now introduce the system $\lambda$-Curry.
+	
+	\begin{mydef}
+		The \myemph{set of types} of $\lambdasystem$, denoted by $\text{Type} {\left( \lambdasystem \right)}$, is inductively defined as follows:
+		\begin{center}
+			$\begin{matrix}
+				\alpha, \alpha', \dots \in \mathbb{T} & \text{(type variables);} \\ 
+				\sigma, \tau \in \mathbb{T} \Rightarrow \left( \sigma \rightarrow \tau \right) \in \mathbb{T} & \text{(function space types).}
+			\end{matrix}$
+		\end{center}
+		Such definitions will occur more often and it can be convenient to use the following abstract syntax instead to form $\mathbb{T}$:
+		\begin{center}
+			$\mathbb{T} = \mathbb{V} \mid \mathbb{T} \rightarrow \mathbb{T}$
+		\end{center}
+		with $\mathbb{V}$ defined by
+		\begin{center}
+			$\mathbb{V} = \alpha \mid \mathbb{V}'$ (type variables). \\
+		\end{center}
+	\end{mydef}
+	
+	\begin{notation}
+		\begin{enumerate}
+			\item If $\sigma _{1}, \dots, \sigma _{n} \in \mathbb{T}$ then
+			\begin{center}
+				$\sigma _{1} \rightarrow \sigma _{2} \rightarrow \dots \rightarrow \sigma _{n}$
+			\end{center}
+			stands for
+			\begin{center}
+				$\left( \sigma _{1} \rightarrow \left( \sigma _{2} \rightarrow \dots \rightarrow \left( \sigma _{n - 1} \rightarrow \sigma _{n} \right) \dots \right) \right)$
+			\end{center}
+			that is, $\rightarrow$ is right associative.
+			\item $\alpha, \beta, \gamma, \dots$ denote arbitrary type variables. \\
+		\end{enumerate}
+	\end{notation}
+	
+	\begin{mydef}[$\lambdasystem$-Curry]\label{def:lscurry}
+		\begin{enumerate}
+			\item A statement is of the form $M : \sigma$ with $M \in \Lambda$ and $\sigma \in \mathbb{T}$.
+			This statement is pronounced as '$M \in \sigma$'.
+			The type $\sigma$ is called the \myemph{predicate} and $M$ the \myemph{subject} of the statement.
+			\item A \myemph{declaration} is a statement with a (term) variable as the subject.
+			\item A \myemph{basis} is a set of declarations with distinct variables as subjects. \\
+		\end{enumerate}	
+	\end{mydef}
+	
+	\begin{mydef}[Derivability]
+		A statement $M : \sigma$ is \myemph{derivable} from a basis $\Gamma$, denoted by 
+		\begin{center}
+			$\Gamma \vdash _{\lambdasystem \text{-Curry}} M : \sigma$
+		\end{center}
+		(or
+		\begin{center}
+			$\Gamma \vdash M : \sigma$
+		\end{center}
+		if there is no danger for confusion) if $\Gamma \vdash M : \sigma$ can be produced by the following rules:
+		\begin{center}
+		$\lambdasystem$-Curry (version 0)
+		\begin{mdframed}
+			\begin{center}
+				\begin{align*}
+					\left( x : \sigma \right) \in \Gamma & \Rightarrow x : \sigma \text{;}\\
+					\Gamma \vdash M : \left( \sigma \rightarrow \tau \right), \Gamma \vdash N : \sigma & \Rightarrow \Gamma \vdash \left( M N \right) : \tau \text{;} \\
+					\Gamma, x : \sigma \vdash M : \tau & \Rightarrow \Gamma \vdash \left( \lambda x . M \right) : \left( \sigma \rightarrow \tau \right) \text{.}
+				\end{align*}
+			\end{center}
+		\end{mdframed}
+		\end{center}
+		
+		Here $\Gamma , x : \sigma$ stands for $\Gamma \cup \left \{ x : \sigma \right \}$. If $\Gamma = \left \{ x _{1} : \sigma _{1} , \dots , x _n{} : \sigma _{n} \right \}$ (or $\Gamma = \emptyset$), then one writes $x _{1} : \sigma _{1} , \dots , x _n{} : \sigma _{n} \vdash M : \sigma$ (or $\vdash M : \sigma$) instead of writing $\Gamma \vdash M : \sigma$. Like we mentioned before, $\vdash$ is pronounced 'yields'.
+		
+		The rules in Definition \ref{def:lscurry} are usually notated as follows:
+		\begin{center}
+			\begin{tabular}{|lllll|}
+  				\multicolumn{5}{c}{$\lambdasystem$-Curry (version 1)} \\
+				\hline
+				& & & & \\
+				(axiom) & & $\Gamma \vdash x : \sigma$ & & if $\left( x : \sigma \right) \in \Gamma$; \\
+				& & & & \\
+				($\rightarrow$-elimination) & & \inference[]{\Gamma \vdash M : \left( \sigma \rightarrow \tau \right) & \Gamma \vdash N : \sigma}{\Gamma \vdash \left( M N \right) : \tau}; & & \\
+				& & & & \\
+				($\rightarrow$-introduction) & & \inference[]{\Gamma, x : \sigma \vdash M : \tau}{\Gamma \vdash \left( \lambda x . M \right) : \left( \sigma \rightarrow \tau \right)}. & & \\
+				& & & & \\
+				\hline
+			\end{tabular}
+		\end{center}
+		
+		Another notation for these rules is the natural deduction formulation:
+		\begin{center}
+			\begin{tabular}{|ccc|ccc|}
+				\multicolumn{6}{c}{$\lambdasystem$-Curry (version 2)} \\
+				\hline
+				\multicolumn{3}{|c|}{Elimination Rule} & \multicolumn{3}{|c|}{Introduction Rule} \\
+				\hline
+				& & & & & \\
+				& \inference[]{M : \left( \sigma \rightarrow \tau \right) & N : \sigma}{M N : \tau} & & & \inference[]{\text{\sout{$x : \sigma$}} \\ \vdots \\ M : \tau}{\left( \lambda x . M \right) : \left( \sigma \rightarrow \tau \right)} & \\
+				& & & & & \\
+				\hline
+			\end{tabular}
+		\end{center}
+		
+		In this last version the axiom of version 0 or 1 is considered to be implicit and therefore it is not notated.
+		The notation:
+		\begin{center}
+			$\begin{matrix}
+				x : \sigma \\
+				\vdots \\
+				M : \tau
+			\end{matrix}$
+		\end{center}
+		means that from the assumption $x : \sigma$ (together with a set $\Gamma$ of other statements) one can derive $M : \tau$.
+		The introduction rule in version 2 states that from that sequence one may infere that $\left( \lambda x . M \right) : \left( \sigma \rightarrow \tau \right)$ is derivable even without the assumption $x : \sigma$ (but still using $\Gamma$).
+		This process is called \myemph{cancellation} of an assumption and is indicated by striking through the statement \sout{$\left( x : \sigma \right)$}. \\
+	\end{mydef}
+	
+	\begin{myex}
+		\begin{enumerate}
+			\item Using version 1 of the system, the derivation
+			\begin{center}
+				\begin{tabular}{c}
+					\\
+					\inference[]{\inference[]{x : \sigma, y : \tau \vdash x : \sigma}{x : \sigma \vdash \left( \lambda y . x \right) : \left( \tau \rightarrow \sigma \right)}}{\vdash \left( \lambda x y . x \right) : \left( \sigma \rightarrow \tau \rightarrow \sigma \right)} \\
+				\end{tabular}
+			\end{center}
+			shows that $\vdash \left( \lambda x y . x \right) : \left( \sigma \rightarrow \tau \rightarrow \sigma \right)$ for all $\sigma, \tau \in \mathbb{T}$.
+			
+			A \myemph{natural deduction} derivation (for version 2) of the same type assignment is
+			\begin{center}
+				\begin{tabular}{c}
+					\\
+					\inference[]{\inference[]{\inference[]{\text{\sout{$x : \sigma$} } 1 & \text{\sout{$y : \tau$} } 2}{x : \sigma}}{\left( \lambda y . x \right) : \left( \tau \rightarrow \sigma \right)} 2}{\left( \lambda x y . x \right) : \left( \sigma \rightarrow \tau \rightarrow \sigma \right)} 1
+				\end{tabular}
+			\end{center}
+			The numbers are simply indicating at which application of a rule a particular assumption was cancelled.
+			\item Similarly to the previous example, one can show that $\forall \sigma \in \mathbb{T}$
+			\begin{center}
+				$\vdash \left( \lambda x . x \right) : \left( \sigma \rightarrow \sigma \right)$.
+			\end{center}
+			\item An example with a non-empty basis is
+			\begin{center}
+				$y : \sigma \vdash \left( \lambda x . x \right) y : \sigma$. \\
+			\end{center}
+		\end{enumerate}
+	\end{myex}
+			
+	\begin{mydef}
+		Let $\Gamma = \left \{ x _{1} : \sigma _{1}, \dots, x _{n} : \sigma _{n} \right \}$ be a basis.
+		\begin{enumerate}
+			\item Write $dom {\left( \Gamma \right)} = \left \{ x _{1}, \dots, x _{n} \right \}$; $\sigma _{i} = \Gamma {\left( x _{i} \right)}$. That is, $\Gamma$ can be seen as a partial function.
+			\item Let $V _{0}$ be a set of variables. Then $\Gamma \upharpoonright V _{0} = \left \{ x : \sigma \mid x \in V _{0} \text{ and } \sigma = \Gamma {\left( x \right)} \right \}$.
+			\item For $\sigma, \tau \in \mathbb{T}$, the substitution of $\tau$ for $\alpha$ in $\sigma$ is denoted by $\sigma {\left[ \alpha : = \tau \right]}$. \\
+		\end{enumerate}
+	\end{mydef}
+	
+	\begin{mylm}[Basis lemma for $\lambdasystem$-Curry]\label{lm:basis-curry}
+		Let $\Gamma$ be a basis..
+		\begin{enumerate}
+			\item If $\Gamma ' \supseteq \Gamma$ is another basis, then $\Gamma \vdash M : \sigma \Rightarrow \Gamma ' \vdash M : \sigma$.
+			\item $\Gamma \vdash M : \sigma \Rightarrow FV {\left( M \right)} \subseteq dom {\left( \Gamma \right)}$. \footnote{Remember that $FV {\left( M \right)}$ denotes the set of free variables of the term $M$.}
+			\item $\Gamma \vdash M : \sigma \Rightarrow \Gamma \upharpoonright FV {\left( M \right)} \vdash M : \sigma$.
+		\end{enumerate}
+	\end{mylm}
+	\begin{proof}
+		Since 1., 2. and 3. all follow from induction on the derivation of $M : \sigma$, let us prove this lemma only for 1.
+		
+		We need to consider 3 cases:
+		\begin{enumerate}
+			\item $M : \sigma$ is $x : \sigma$: let us consider that $x : \sigma \in \Gamma$. Since $x : \sigma$ is an element of $\Gamma$, we also have $x : \sigma \in \Gamma '$ and hence $\Gamma ' \vdash x : \sigma$, that is, $\Gamma ' \vdash M : \sigma$.
+			\item $M : \sigma$ is $\left( M _{1} M _{2} \right) : \sigma$: let us assume that we have $\Gamma \vdash M _{1} : \left( \tau \rightarrow \sigma \right)$ and $\Gamma \vdash M _{2} : \tau$, for some $\tau$. By Induction Hypothesis, we have that $\Gamma ' \vdash M _{1} : \left( \tau \rightarrow \sigma \right)$ and $\Gamma ' \vdash M _{2} : \tau$. Hence, using the elimination rule from version 1 of the system, we have that $\Gamma ' \vdash \left( M _{1} M _{2} \right) : \sigma $.
+			\item $M : \sigma$ is $\left( \lambda x . M _{1} \right) : \left( \sigma \rightarrow \tau \right)$: let us assume that we have $\Gamma, x : \sigma \vdash \left( M _{1} : \tau \right)$. By the variable convention\footnote{\myemph{Barendregt's variable convention}: If $M _{1}, \dots, M _{n}$ occur in a certain mathematical context (definition or proof, for example), then in these terms all bound variables are chosen to be different from the free variables.} we can assume that the bound variable $x$ does not occur in $dom {\left( \Gamma ' \right)}$. Then $\Gamma ' , x : \sigma$ is also a basis which extends $\Gamma , x : \sigma$. Therefore, by the Induction Hypothesis, we have $\Gamma ' , x : \sigma \vdash M _{1} : \tau$, and using the introduction rule from version 1 of the system, we have that $\Gamma ' \vdash \left( \lambda x . M _{1} \right) : \left( \sigma \rightarrow \tau \right)$.
+		\end{enumerate}
+	\end{proof}
+	
+	Note that the second property analysis how terms of a certain form get typed.
+	In particular, it can be used to show that certain terms have no types.
+	
+	\begin{mylm}[Generation lemma for $\lambdasystem$-Curry]\label{lm:generation-curry}
+		The following three properties hold.
+		\begin{enumerate}
+			\item $\Gamma \vdash x : \sigma \Rightarrow \left( x : \sigma \right) \in \Gamma$.
+			\item $\Gamma \vdash M N : \tau \Rightarrow \exists \sigma \left[ \Gamma \vdash M : \left( \sigma \rightarrow \tau \right) \text{ and } \Gamma \vdash N : \sigma \right]$.
+			\item $\Gamma \vdash \lambda x . M : \rho \rightarrow \exists \sigma, \tau [\Gamma , x : \sigma \vdash M : \tau \text{ and } \rho \equiv \left( \sigma \rightarrow \tau \right)]$.
+		\end{enumerate}
+	\end{mylm}
+	\begin{proof}
+		All by induction on the length of the derivation.
+	\end{proof}
+	
+	\begin{mylm}[Typability of subterms in $\lambdasystem$-Curry]
+		Let $M '$ be a substerm of $M$. Then $\Gamma \vdash M : \sigma \Rightarrow \Gamma ' \vdash M ' : \sigma '$ for some $\Gamma '$ and $\sigma '$.
+		That is, if $M$ has a type, i.e. $\Gamma \vdash M : \sigma$ for some $\Gamma$ and $\sigma$, then every subterm has a type as well.
+	\end{mylm}
+	\begin{proof}
+		By induction on the generation of $M$.
+	\end{proof}
+	
+	\begin{mylm}[Substitution lemma for $\lambdasystem$-Curry]\label{lm:substitution-curry}
+		The following two properties hold.
+		\begin{enumerate}
+			\item $\Gamma \vdash M : \sigma \Rightarrow \Gamma {\left[ \alpha : = \tau \right]} \vdash M : \sigma {\left[ \alpha : = \tau \right]}$.
+			\item Suppose $\Gamma, x : \sigma \vdash M : \tau$ and $\Gamma \vdash N : \sigma$. Then $\Gamma \vdash M {\left[ x : = N \right]} : \tau$
+		\end{enumerate}
+	\end{mylm}
+	\begin{proof}
+		\begin{enumerate}
+			\item By induction on the derivation of $M : \sigma$.
+			\item By induction on the generation of $\Gamma , x : \sigma \vdash M : \tau$.
+		\end{enumerate}
+	\end{proof}
+	
+	\begin{mylm}[Subject reduction theorem for $\lambdasystem$-Curry]\label{lm:subject-reduction-curry}
+		Suppose $M \twoheadrightarrow _{\beta} M '$. Then
+		\begin{center}
+			$\Gamma \vdash M : \sigma \Rightarrow \Gamma \vdash M ' : \sigma$.
+		\end{center}
+		
+		That is, the set of $M \in \Lambda$ having a certain type in $\lambdasystem$ is closed under reduction.
+	\end{mylm}
+	\begin{proof}
+		We can prove this using induction on the generation of $\twoheadrightarrow _{\beta}$ and the results on Lemmas \ref{lm:generation-curry} and \ref{lm:substitution-curry}.
+		
+		Let us consider the prime case, that is, let us consider that we have $M \equiv \left( \lambda x . P \right) Q$ and $M ' \equiv P {\left[ x : = Q \right]}$.
+		If we consider that $\Gamma \vdash \left( \lambda x . P \right) Q : \sigma$, then we get from the second property of Lemma \ref{lm:generation-curry} that, for some $\tau$,
+		\begin{center}
+			$\Gamma \vdash \left( \lambda x . P \right) : \left( \tau \rightarrow \sigma \right)$ and $\Gamma \vdash Q : \tau$.
+		\end{center}
+		Hence, once more from the third property of Lemma \ref{lm:generation-curry}
+		\begin{center}
+			$\Gamma, x : \tau \vdash P : \sigma$ and $\Gamma \vdash Q : \tau$
+		\end{center}
+		and therefore, by the second property of Lemma \ref{lm:substitution-curry}, we get
+		\begin{center}
+			$\Gamma \vdash P {\left[ x : = Q \right]} : \sigma$.
+		\end{center}
+	\end{proof}
+	
+	It is not true that terms having a type are closed under expansion
+	
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
+	% 2.2 Church system
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%		
+	\subsection{The system $\lambdasystem$-Church}
+	
+	Before giving the formal definition, let us see the difference between the Curry and Church versions of the system $\lambdasystem$.
+	If on one hand we have in the Curry style
+	\begin{center}
+		$\vdash _{\text{Curry}} \left( \lambda x . x \right) : \left( \sigma \rightarrow \sigma \right)$,
+	\end{center}
+	on the other hand we have in the Church style
+	\begin{center}
+		$\vdash _{\text{Church}} \left( \lambda x {:} \sigma . x \right) : \left( \sigma \rightarrow \sigma \right)$.
+	\end{center}
+	That is, the term $\lambda x . x$ is annotated in the Church system by '${:} \sigma$'.
+	We can see $\lambda x {:} \sigma . x$ as a term taking the argument $x$ from the type $\sigma$.
+	This explicit mention of types makes the problem of determining whether a term has a certain type or not \myemph{decidable}.
+	For some Curry systems, this question is undecidable.
+	
+	\begin{mydef}
+		Let $\mathbb{T}$ be some set of types. The set of \myemph{$\mathbb{T}$-annotated $\lambda$-terms} (also called \myemph{pseudoterms}), denoted by $\Lambda _{\mathbb{T}}$, is defined as follows:
+		\begin{center}
+			$\Lambda _{\mathbb{T}} = V \mid \Lambda _{\mathbb{T}} \Lambda _{\mathbb{T}} \mid \lambda x {:} \mathbb{T} \Lambda _{\mathbb{T}}$,
+		\end{center}
+		where $V$ is the set of term variables.
+		
+		The same syntactic conventions for $\Lambda$ are used for $\Lambda _{\mathbb{T}}$. For example,
+		\begin{center}
+			$\lambda x {:} \sigma _{1} \cdots x _{n} {:} \sigma _{n} . M \equiv \left( \lambda x _{1} {:} \sigma _{1} \left( \lambda x _{2} {:} \sigma _{2} \dots \left( \lambda x _{n} {:} \sigma _{n} \left( M \right) \right) \dots \right) \right)$,
+		\end{center}
+		which can be abbreviated as
+		\begin{center}
+			$\lambda \overrightarrow{x} {:} \overrightarrow{\sigma} . M$. \\
+		\end{center}
+	\end{mydef}
+	
+	Several systems of typed $\lambda$-calculi (Church style) consist of a choice of the set of types $\mathbb{T}$ and of an assignment of types $\sigma \in \mathbb{T}$ to terms $M \in \Lambda _{\mathbb{T}}$.
+	However, this is not the case in all Church style systems.
+	In systems that have term dependent types, the sets of terms and types are defined simultaneously.
+	Anyway, for $\lambdasystem$-Church it is possible to define types and terms separately and one has as choice of types the same set $\mathbb{T} = \text{Type} {\left( \lambdasystem \right)}$ as in Curry style.
+	
+	\begin{mydef}
+		The typed $\lambda$-calculus $\lambdasystem$-Church is defined as follows:
+		\begin{enumerate}
+			\item The set of types $\mathbb{T} = \text{Type} {\left( \lambdasystem \right)}$ is defined by
+			\begin{center}
+				$\mathbb{T} = \mathbb{V} \mid \mathbb{T} \rightarrow \mathbb{T}$.
+			\end{center}
+			\item A \myemph{statement} is of the form $M : \sigma$ with $M \in \Lambda _{\mathbb{T}}$ and $\sigma \in \mathbb{T}$.
+			\item A \myemph{basis} is again a set of statements with only variables as subjects. \\
+		\end{enumerate}
+	\end{mydef}
+	
+	\begin{mydef}[Derivability]
+		A statement $M : \sigma$ is \myemph{derivable} from the basis $\Gamma$, which is denoted by $\Gamma \vdash M : \sigma$, if it can be produced using the following rules:
+		
+		\begin{center}
+			\begin{tabular}{|lllll|}
+  				\multicolumn{5}{c}{$\lambdasystem$-Church} \\
+				\hline
+				& & & & \\
+				(axiom) & & $\Gamma \vdash x : \sigma$ & & if $\left( x : \sigma \right) \in \Gamma$; \\
+				& & & & \\
+				($\rightarrow$-elimination) & & \inference[]{\Gamma \vdash M : \left( \sigma \rightarrow \tau \right) & \Gamma \vdash N : \sigma}{\Gamma \vdash \left( M N \right) : \tau}; & & \\
+				& & & & \\
+				($\rightarrow$-introduction) & & \inference[]{\Gamma, x {:} \sigma \vdash M : \tau}{\Gamma \vdash \left( \lambda x {:} \sigma . M \right) : \left( \sigma \rightarrow \tau \right)}. & & \\
+				& & & & \\
+				\hline
+			\end{tabular}
+		\end{center}
+	\end{mydef}
+	
+	As we did for $\lambdasystem$-Curry, derivations can be given in several styles.
+	
+	\begin{mydef}
+		The set of \myemph{legal $\lambdasystem$-terms} is defined by
+		\begin{center}
+			$\Lambda {\left( \lambdasystem \right)} = \left \{ M \in \Lambda _{\mathbb{T}} \mid \exists \Gamma , \sigma \ \Gamma \vdash M : \sigma \right \}$
+		\end{center}
+		and denoted by $\Lambda {\left( \lambdasystem \right)}$. \\
+	\end{mydef}
+	
+	In order to refer specifically to $\lambdasystem$-Church, we use the notation
+	\begin{center}
+		$\Gamma \vdash _{\lambdasystem \text{-Church}} M : \sigma$.
+	\end{center}
+	If there is little danger of ambiguity, we can also use $\vdash _{\lambdasystem}$, $\vdash _{\text{Church}}$ or simply $\vdash$.
+	
+	As we do for type-free theory, we can also define reduction and conversion for the set of pseudoterms $\Lambda _{\mathbb{T}}$.
+	
+	\begin{mydef}
+		On $\Lambda _{\mathbb{T}}$, the binary relations \myemph{one-step $\beta$-reduction}, \myemph{many-step $\beta$-reduction} and \myemph{$\beta$-convertibility}, denoted by $\rightarrow _{\beta}$, $\twoheadrightarrow _{\beta}$ and $= _{\beta}$ respectively, are generated by the following contraction rule
+		\begin{equation}
+			\left( \lambda x {:} \sigma . M \right) N \rightarrow M {\left[ x : = N \right]} \tag{$\beta$}
+		\end{equation}
+	\end{mydef}
+	
+	\begin{myex}
+		The following is a one-step $\beta$-reduction:
+		\begin{center}
+			$\left( \lambda x {:} \sigma . x \right) \left( \lambda y {:} \tau . yy \right) \rightarrow _{\beta} \lambda y {:} \tau . yy$.
+		\end{center}
+	\end{myex}
+	
+	The Church-Rosser theorem \footnote{Remember the \myemph{Church-Rosser theorem}: If $M \twoheadrightarrow _{\beta} N _{1}$ and $M \twoheadrightarrow _{\beta} N _{2}$, then for some $N _{3}$ we have that $N _{1} \twoheadrightarrow _{\beta} N _{3}$ and $N _{2} \twoheadrightarrow _{\beta} N _{3}$.} for $\twoheadrightarrow _{\beta}$ also holds on $\Lambda _{\mathbb{T}}$.
+	Since the proof is similar to the one for $\Lambda$, we will not present it here.
+	Since the following Lemmas for $\lambdasystem$-Church are in its essence the same as Lemmas \ref{lm:basis-curry} - \ref{lm:subject-reduction-curry} for $\lambdasystem$-Curry, we will omit any proofs.
+	
+	\begin{mylm}[Basis lemma for $\lambdasystem$-Church]
+		Let $\Gamma$ be a basis.
+		\begin{enumerate}
+			\item If $\Gamma ' \supseteq \Gamma$ is another basis, then $\Gamma \vdash M : \sigma \Rightarrow \Gamma ' \vdash M : \sigma$.
+			\item $\Gamma \vdash M : \sigma \Rightarrow FV {\left( M \right)} \subseteq dom {\left( \Gamma \right)}$.
+			\item $\Gamma \vdash M : \sigma \Rightarrow \Gamma \upharpoonright FV {\left( M \right)} \vdash M : \sigma$. \\
+		\end{enumerate}
+	\end{mylm}
+	
+	\begin{mylm}[Generation lemma for $\lambdasystem$-Church]
+		The following three properties hold.
+		\begin{enumerate}
+			\item $\Gamma \vdash x : \sigma \Rightarrow \left( x {:} \sigma \right) \in \Gamma$.
+			\item $\Gamma \vdash M N : \tau \Rightarrow \exists \sigma \left[ \Gamma \vdash M : \left( \sigma \rightarrow \tau \right) \text{ and } \Gamma \vdash N : \sigma \right]$.
+			\item $\Gamma \vdash \left( \lambda x {:} \sigma . M \right) : \rho \rightarrow \exists \tau [\Gamma , x {:} \sigma \vdash M : \tau \text{ and } \rho = \left( \sigma \rightarrow \tau \right)]$.
+		\end{enumerate}
+	\end{mylm}
+	
+	\begin{mylm}[Typability of subterms in $\lambdasystem$-Church]
+		If $M$ has a type, then every subterm has a type as well.
+	\end{mylm}
+	
+	\begin{mylm}[Substitution lemma for $\lambdasystem$-Church]
+		The following two properties hold.
+		\begin{enumerate}
+			\item $\Gamma \vdash M : \sigma \Rightarrow \Gamma {\left[ \alpha : = \tau \right]} \vdash M {\left[ \alpha : = \tau \right]} : \sigma {\left[ \alpha : = \tau \right]}$.
+			\item Suppose $\Gamma, x {:} \sigma \vdash M : \tau$ and $\Gamma \vdash N : \sigma$. Then $\Gamma \vdash M {\left[ x : = N \right]} : \tau$
+		\end{enumerate}
+	\end{mylm}
+	
+	\begin{mylm}[Subject reduction theorem for $\lambdasystem$-Church]\label{lm:subject-reduction-church}
+		Suppose $M \twoheadrightarrow _{\beta} M '$. Then
+		\begin{center}
+			$\Gamma \vdash M : \sigma \Rightarrow \Gamma \vdash M ' : \sigma$.
+		\end{center}
+	\end{mylm}
+	
+	This lemma implies that the set of legal expressions is closed under reduction.
+	That is not true for neither expansion nor conversion. \\
+	
+	\begin{mylm}[Uniqueness of types lemma for $\lambdasystem$-Church]
+		The following two properties hold.
+		\begin{enumerate}
+			\item Suppose $\Gamma \vdash M : \sigma$ and $\Gamma \vdash M : \sigma '$. Then $\sigma \equiv \sigma '$.
+			\item Suppose $\Gamma \vdash M : \sigma$, $\Gamma \vdash M ' : \sigma '$ and $M = _{\beta} M '$. Then, $\sigma \equiv \sigma '$.
+		\end{enumerate}
+	\end{mylm}
+	
+	\begin{proof}
+		\begin{enumerate}
+			\item Induction on the structure of $M$.
+			\item This can be proved using the Church-Rosser theorem for $\Lambda _{\mathbb{T}}$, the Lemma \ref{lm:subject-reduction-church} and the first property of this Lemma.
+		\end{enumerate}
+	\end{proof}
+	
+	As we saw in the previous subsection, this property does not hold for $\lambdasystem$-Curry.
+	
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
+	% 3. Relation
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	
+	\section{Conclusion - Relating the Curry and Church Systems}\label{sec:relating}
+	
+	There is often a simple relation between Curry and Church typing systems.
+	We will now explain this for $\lambdasystem$.
+	
+	\begin{mydef*}
+		There is a map $\left \vert \cdot \right \vert : \Lambda _{\mathbb{T}} \to \Lambda$	defined as follows:
+		\begin{align*}
+			\left \vert x \right \vert &\equiv x; \\
+			\left \vert M N\right \vert &\equiv \left \vert M \right \vert \left \vert N \right \vert; \\
+			\left \vert \lambda x {:} \sigma . M \right \vert &\equiv \lambda x . \left \vert M \right \vert.
+		\end{align*}
+		This map simply erases all type ornamentations of a term in $\Lambda _{\mathbb{T}}$.
+	\end{mydef*}
+	
+	The following (and last result) states that legal terms in the Church version 'project' to legal terms in the Curry version of $\lambdasystem$, and can be proved by induction.
+	
+	\begin{mylm*}
+		The following two properties hold.
+		\begin{enumerate}
+			\item Let $M \in \Lambda _{\mathbb{T}}$. Then
+			\begin{center}
+				$\Gamma \vdash _{\text{Church}} M : \sigma \Rightarrow \Gamma \vdash _{\text{Curry}} \left \vert M \right \vert : \sigma$.
+			\end{center}
+			\item Let $M \in \Lambda$. Then
+			\begin{center}
+				$\Gamma \vdash _{\text{Curry}} M : \sigma \Rightarrow \exists M ' \in \Lambda _{\mathbb{T}} \left[ \Gamma \vdash _{\text{Church}} M ' : \sigma \text{ and } \left \vert M ' \right \vert \equiv M \right]$.
+			\end{center}
+		\end{enumerate}
+	\end{mylm*}
+	
+	\bibliographystyle{siam}
+	\bibliography{typed_lambda_calculus}
 \end{document}
+
